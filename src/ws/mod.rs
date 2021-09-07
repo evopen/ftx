@@ -11,7 +11,7 @@ pub use model::*;
 use futures::{
     ready,
     task::{Context, Poll},
-    AsyncRead, AsyncWrite, Future, Sink, SinkExt, Stream, StreamExt,
+    Future, SinkExt, Stream, StreamExt,
 };
 use hmac_sha256::HMAC;
 use serde_json::json;
