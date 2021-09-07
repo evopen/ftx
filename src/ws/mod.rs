@@ -11,21 +11,60 @@ pub use model::*;
 use futures::{
     ready,
     task::{Context, Poll},
-    Future, SinkExt, Stream, StreamExt,
+    AsyncRead, AsyncWrite, Future, Sink, SinkExt, Stream, StreamExt,
 };
 use hmac_sha256::HMAC;
 use serde_json::json;
-use std::collections::VecDeque;
-use std::pin::Pin;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::{collections::VecDeque, str::FromStr};
+use std::{pin::Pin, sync::Arc};
 use tokio::net::TcpStream;
 use tokio::time; // 1.3.0
 use tokio::time::Interval;
-use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::{connect_async, tungstenite::Message};
+
+/// Stream, either plain TCP or TLS.
+#[derive(Debug)]
+pub enum GenericWebSocketStream {
+    /// Direct socket stream.
+    Plain(tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<TcpStream>>),
+    /// Proxied socket stream.
+    Proxy(
+        tokio_tungstenite::WebSocketStream<
+            tokio_rustls::client::TlsStream<tokio_socks::tcp::Socks5Stream<TcpStream>>,
+        >,
+    ),
+}
+
+impl GenericWebSocketStream {
+    async fn send(
+        &mut self,
+        msg: Message,
+    ) -> std::result::Result<(), tokio_tungstenite::tungstenite::Error> {
+        match self {
+            GenericWebSocketStream::Plain(s) => s.send(msg).await,
+            GenericWebSocketStream::Proxy(s) => s.send(msg).await,
+        }
+    }
+
+    async fn next(
+        &mut self,
+    ) -> Option<
+        std::result::Result<
+            tokio_tungstenite::tungstenite::Message,
+            tokio_tungstenite::tungstenite::Error,
+        >,
+    > {
+        match self {
+            GenericWebSocketStream::Plain(s) => s.next().await,
+            GenericWebSocketStream::Proxy(s) => s.next().await,
+        }
+    }
+}
 
 pub struct Ws {
     channels: Vec<Channel>,
-    stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+    stream: GenericWebSocketStream,
     buf: VecDeque<(Option<Symbol>, Data)>,
     ping_timer: Interval,
     /// Whether the websocket was opened authenticated with API keys or not
@@ -33,15 +72,40 @@ pub struct Ws {
 }
 
 impl Ws {
-    pub const ENDPOINT: &'static str = "wss://ftx.com/ws";
-    pub const ENDPOINT_US: &'static str = "wss://ftx.us/ws";
+    pub const ENDPOINT: &'static str = "ftx.com";
 
     async fn connect_with_endpoint(
         endpoint: &str,
         key_secret: Option<(String, String)>,
         subaccount: Option<String>,
+        proxy: Option<String>,
     ) -> Result<Self> {
-        let (mut stream, _) = connect_async(endpoint).await?;
+        let mut stream: GenericWebSocketStream = match proxy {
+            Some(proxy) => {
+                let socks_stream = tokio_socks::tcp::Socks5Stream::connect(
+                    std::net::SocketAddr::from_str(&proxy).expect("invalid proxy addr"),
+                    (Self::ENDPOINT, 443),
+                )
+                .await
+                .expect("cannot connect to proxy");
+                let mut client_config = tokio_rustls::rustls::ClientConfig::new();
+                client_config
+                    .root_store
+                    .add_server_trust_anchors(&webpki_roots::TLS_SERVER_ROOTS);
+                let connector = tokio_rustls::TlsConnector::from(Arc::new(client_config));
+                let domain = webpki::DNSNameRef::try_from_ascii_str(Self::ENDPOINT).unwrap();
+                let tls_stream = connector
+                    .connect(domain, socks_stream)
+                    .await
+                    .expect("cannot create tls stream");
+                let (ws_client, response) =
+                    tokio_tungstenite::client_async(format!("wss://{}/ws", endpoint), tls_stream)
+                        .await
+                        .unwrap();
+                GenericWebSocketStream::Proxy(ws_client)
+            }
+            None => GenericWebSocketStream::Plain(connect_async(endpoint).await?.0),
+        };
         let is_authenticated = key_secret.is_some();
         if let Some((key, secret)) = key_secret {
             let timestamp = SystemTime::now()
@@ -80,18 +144,19 @@ impl Ws {
         // The channels FILL, ORDER, and FTX Pay require authentification
         key_secret: Option<(String, String)>,
         subaccount: Option<String>,
+        proxy: Option<String>,
     ) -> Result<Self> {
-        Self::connect_with_endpoint(Self::ENDPOINT, key_secret, subaccount).await
+        Self::connect_with_endpoint(Self::ENDPOINT, key_secret, subaccount, proxy).await
     }
 
     // Pair (API_KEY, SECRET_KEY) for authentification.
     // The channels FILL, ORDER, and FTX Pay require authentification
-    pub async fn connect_us(
-        key_secret: Option<(String, String)>,
-        subaccount: Option<String>,
-    ) -> Result<Self> {
-        Self::connect_with_endpoint(Self::ENDPOINT_US, key_secret, subaccount).await
-    }
+    // pub async fn connect_us(
+    //     key_secret: Option<(String, String)>,
+    //     subaccount: Option<String>,
+    // ) -> Result<Self> {
+    //     Self::connect_with_endpoint(Self::ENDPOINT_US, key_secret, subaccount).await
+    // }
 
     async fn ping(&mut self) -> Result<()> {
         self.stream

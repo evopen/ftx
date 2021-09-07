@@ -5,19 +5,25 @@ use rust_decimal_macros::dec;
 use std::env::var;
 async fn init_authenticated_ws() -> Ws {
     dotenv().ok();
+    let proxy = var("SOCKS_PROXY").ok();
     Ws::connect(
         Some((
             var("FTX_API_KEY").expect("API Key is not defined."),
             var("FTX_API_SECRET").expect("API Secret is not defined."),
         )),
         var("FTX_SUBACCOUNT").ok(),
+        proxy,
     )
     .await
     .expect("Connection failed.")
 }
 async fn init_unauthenticated_ws() -> Ws {
     dotenv().ok();
-    Ws::connect(None, None).await.expect("Connection failed.")
+    let proxy = var("SOCKS_PROXY").ok();
+
+    Ws::connect(None, None, proxy)
+        .await
+        .expect("Connection failed.")
 }
 
 #[allow(dead_code)]
