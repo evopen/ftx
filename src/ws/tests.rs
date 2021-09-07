@@ -7,10 +7,10 @@ async fn init_authenticated_ws() -> Ws {
     dotenv().ok();
     Ws::connect(
         Some((
-            var("API_KEY").expect("API Key is not defined."),
-            var("API_SECRET").expect("API Secret is not defined."),
+            var("FTX_API_KEY").expect("API Key is not defined."),
+            var("FTX_API_SECRET").expect("API Secret is not defined."),
         )),
-        var("SUBACCOUNT").ok(),
+        var("FTX_SUBACCOUNT").ok(),
     )
     .await
     .expect("Connection failed.")
@@ -25,9 +25,9 @@ async fn init_api() -> Rest {
     dotenv().ok();
 
     Rest::new(
-        var("API_KEY").expect("API Key is not defined."),
-        var("API_SECRET").expect("API Secret is not defined."),
-        var("SUBACCOUNT").ok(),
+        var("FTX_API_KEY").expect("API Key is not defined."),
+        var("FTX_API_SECRET").expect("API Secret is not defined."),
+        var("FTX_SUBACCOUNT").ok(),
     )
 }
 
