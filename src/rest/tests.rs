@@ -8,10 +8,13 @@ async fn init_api() -> Rest {
 
     let subaccount = var("SUBACCOUNT").ok();
 
+    let proxy = var("SOCKS_PROXY").ok();
+
     let api = Rest::new(
         var("FTX_API_KEY").expect("API Key is not defined."),
         var("FTX_API_SECRET").expect("API Secret is not defined."),
         subaccount.clone(),
+        proxy,
     );
 
     // Test create subaccount only if credentials are account-wide

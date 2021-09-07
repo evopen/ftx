@@ -9,6 +9,7 @@ async fn main() {
         var("API_KEY").expect("API key not defined"),
         var("API_SECRET").expect("API secret not defined"),
         var("SUBACCOUNT").ok(),
+        None,
     );
     println!("Account:");
     println!("{:#?}", api.get_account().await.unwrap());

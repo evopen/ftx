@@ -37,6 +37,7 @@ impl Rest {
         key: String,
         secret: String,
         subaccount: Option<String>,
+        proxy: Option<String>,
     ) -> Self {
         // Set default headers.
         let mut headers = HeaderMap::new();
@@ -51,10 +52,14 @@ impl Rest {
             );
         }
 
-        let client = ClientBuilder::new()
-            .default_headers(headers)
-            .build()
-            .unwrap();
+        let mut client_builder = ClientBuilder::new().default_headers(headers);
+        if let Some(proxy) = proxy {
+            client_builder = client_builder.proxy(
+                reqwest::Proxy::all(format!("socks5h://{}", proxy)).expect("cannot parse proxy"),
+            );
+        }
+
+        let client = client_builder.build().unwrap();
 
         Self {
             secret,
@@ -65,12 +70,13 @@ impl Rest {
         }
     }
 
-    pub fn new(key: String, secret: String, subaccount: Option<String>) -> Self {
-        Self::new_with_endpoint(Self::ENDPOINT, "FTX", key, secret, subaccount)
-    }
-
-    pub fn new_us(key: String, secret: String, subaccount: Option<String>) -> Self {
-        Self::new_with_endpoint(Self::ENDPOINT_US, "FTXUS", key, secret, subaccount)
+    pub fn new(
+        key: String,
+        secret: String,
+        subaccount: Option<String>,
+        proxy: Option<String>,
+    ) -> Self {
+        Self::new_with_endpoint(Self::ENDPOINT, "FTX", key, secret, subaccount, proxy)
     }
 
     async fn get<T: DeserializeOwned>(&self, path: &str, params: Option<Value>) -> Result<T> {

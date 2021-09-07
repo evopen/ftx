@@ -28,6 +28,7 @@ async fn init_api() -> Rest {
         var("FTX_API_KEY").expect("API Key is not defined."),
         var("FTX_API_SECRET").expect("API Secret is not defined."),
         var("FTX_SUBACCOUNT").ok(),
+        None,
     )
 }
 

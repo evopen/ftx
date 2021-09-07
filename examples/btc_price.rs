@@ -10,6 +10,7 @@ async fn main() -> Result<()> {
         var("API_KEY").expect("API Key is not defined."),
         var("API_SECRET").expect("API Secret is not defined."),
         var("SUBACCOUNT").ok(),
+        None,
     );
 
     let price = api.get_market("BTC/USD").await?.price;
