@@ -332,10 +332,10 @@ pub struct WalletDeposit {
     pub id: Id,
     pub coin: String,
     pub size: Decimal,
-    pub time: String,
+    pub time: chrono::DateTime<Utc>,
     pub status: DepositStatus,
     pub confirmations: Option<usize>,
-    pub confirmed_time: Option<String>,
+    pub confirmed_time: Option<chrono::DateTime<Utc>>,
     pub fee: Option<Decimal>, // fee, not included in size
     pub txid: Option<String>,
     pub notes: Option<String>,
