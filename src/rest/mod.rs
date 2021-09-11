@@ -184,6 +184,8 @@ impl Rest {
                 if let Ok(ErrorResponse { error, .. }) = from_reader(&*body) {
                     Err(Error::Api(error))
                 } else {
+                    let v: serde_json::Value = from_reader(&*body).unwrap();
+                    log::trace!("{}", v.to_string());
                     Err(e.into())
                 }
             }
