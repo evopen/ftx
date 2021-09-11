@@ -385,6 +385,42 @@ impl Rest {
         self.get(&format!("/orders?market={}", market), None).await
     }
 
+    pub async fn get_fills(
+        &self,
+        market: Option<&str>,
+        limit: Option<usize>,
+        order_id: Option<Id>,
+        start_time: Option<DateTime<Utc>>,
+        end_time: Option<DateTime<Utc>>,
+    ) -> Result<Vec<FillInfo>> {
+        let mut params = vec![];
+        if let Some(market) = market {
+            params.push(format!("market={}", market));
+        }
+        if let Some(limit) = limit {
+            params.push(format!("limit={}", limit));
+        }
+        if let Some(start_time) = start_time {
+            params.push(format!("start_time={}", start_time));
+        }
+        if let Some(end_time) = end_time {
+            params.push(format!("end_time={}", end_time));
+        }
+        if let Some(order_id) = order_id {
+            params.push(format!("orderId={}", order_id));
+        }
+
+        self.get(
+            &format!(
+                "/fills{}{}",
+                if params.is_empty() { "" } else { "?" },
+                params.join("&")
+            ),
+            None,
+        )
+        .await
+    }
+
     pub async fn get_order_history(
         &self,
         market: Option<&str>,

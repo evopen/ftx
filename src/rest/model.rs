@@ -351,6 +351,13 @@ pub enum OrderType {
     Limit,
 }
 
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum FillType {
+    Otc,
+    Order,
+}
+
 #[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 /// Represents the status of the order.
@@ -410,4 +417,25 @@ pub struct OrderInfo {
     pub liquidation: Option<bool>,
     pub created_at: DateTime<Utc>,
     pub client_id: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FillInfo {
+    pub id: Id,
+    pub market: Option<String>,
+    pub future: Option<String>,
+    pub r#type: FillType,
+    pub side: Side,
+    pub price: Decimal, // null for new market orders
+    pub size: Decimal,
+    pub time: DateTime<Utc>,
+    pub fee: Decimal,
+    pub fee_currency: Coin,
+    pub fee_rate: Decimal,
+    pub liquidity: String,
+    pub base_currency: Option<Coin>,
+    pub quote_currency: Option<Coin>,
+    pub order_id: Option<Id>,
+    pub trade_id: Option<Id>,
 }
