@@ -98,7 +98,7 @@ impl Ws {
                     .connect(domain, socks_stream)
                     .await
                     .expect("cannot create tls stream");
-                let (ws_client, response) =
+                let (ws_client, _) =
                     tokio_tungstenite::client_async(format!("wss://{}/ws", endpoint), tls_stream)
                         .await
                         .unwrap();
