@@ -573,4 +573,23 @@ impl Rest {
         self.delete(&dbg!(format!("/orders/by_client_id/{}", client_id)), None)
             .await
     }
+
+    pub async fn get_funding_payments(
+        &self,
+        future: Option<&str>,
+        limit: Option<u32>,
+        start_time: Option<DateTime<Utc>>,
+        end_time: Option<DateTime<Utc>>,
+    ) -> Result<Vec<FundingPayment>> {
+        self.get(
+            "/funding_payments",
+            Some(json!({
+                "future": future,
+                "limit": limit,
+                "start_time": start_time.map(|t| t.timestamp()),
+                "end_time": end_time.map(|t| t.timestamp()),
+            })),
+        )
+        .await
+    }
 }

@@ -134,6 +134,15 @@ pub struct Trade {
 
 pub type Trades = Vec<Trade>;
 
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FundingPayment {
+    pub id: Id,
+    pub future: String,
+    pub payment: Decimal,
+    pub time: DateTime<Utc>,
+}
+
 #[derive(Copy, Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Price {
