@@ -455,6 +455,38 @@ impl Rest {
         .await
     }
 
+    pub async fn get_conditional_order_history(
+        &self,
+        market: Option<&str>,
+        limit: Option<usize>,
+        start_time: Option<DateTime<Utc>>,
+        end_time: Option<DateTime<Utc>>,
+    ) -> Result<Vec<ConditionalOrderInfo>> {
+        let mut params = vec![];
+        if let Some(market) = market {
+            params.push(format!("market={}", market));
+        }
+        if let Some(limit) = limit {
+            params.push(format!("limit={}", limit));
+        }
+        if let Some(start_time) = start_time {
+            params.push(format!("start_time={}", start_time));
+        }
+        if let Some(end_time) = end_time {
+            params.push(format!("end_time={}", end_time));
+        }
+
+        self.get(
+            &format!(
+                "/orders/history{}{}",
+                if params.is_empty() { "" } else { "?" },
+                params.join("&")
+            ),
+            None,
+        )
+        .await
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub async fn place_order(
         &self,

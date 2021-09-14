@@ -362,6 +362,14 @@ pub enum OrderType {
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
+pub enum ConditionalOrderType {
+    Stop,
+    TrailingStop,
+    TakeProfit,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub enum FillType {
     Otc,
     Order,
@@ -406,6 +414,14 @@ pub enum OrderStatus {
     Closed,
 }
 
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum ConditionalOrderStatus {
+    Open,
+    Cancelled,
+    Triggered,
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderInfo {
@@ -426,6 +442,30 @@ pub struct OrderInfo {
     pub liquidation: Option<bool>,
     pub created_at: DateTime<Utc>,
     pub client_id: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConditionalOrderInfo {
+    pub id: Id,
+    pub market: String,
+    pub future: Option<String>,
+    pub order_type: OrderType,
+    pub r#type: ConditionalOrderType,
+    pub side: Side,
+    pub price: Option<Decimal>, // null for new market orders
+    pub size: Decimal,
+    pub status: ConditionalOrderStatus,
+    pub trail_start: Option<Decimal>,
+    pub trail_value: Option<Decimal>,
+    pub trigger_price: Decimal,
+    pub triggered_at: Option<DateTime<Utc>>,
+    pub filled_size: Decimal,
+    pub avg_fill_price: Option<Decimal>,
+    pub created_at: DateTime<Utc>,
+    pub client_id: Option<String>,
+    pub order_price: Option<Decimal>,
+    pub retry_until_filled: bool,
 }
 
 #[derive(Clone, Debug, Deserialize)]
