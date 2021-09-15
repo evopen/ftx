@@ -613,14 +613,27 @@ impl Rest {
         start_time: Option<DateTime<Utc>>,
         end_time: Option<DateTime<Utc>>,
     ) -> Result<Vec<FundingPayment>> {
+        let mut params = vec![];
+        if let Some(future) = future {
+            params.push(format!("future={}", future));
+        }
+        if let Some(limit) = limit {
+            params.push(format!("limit={}", limit));
+        }
+        if let Some(start_time) = start_time {
+            params.push(format!("start_time={}", start_time.timestamp()));
+        }
+        if let Some(end_time) = end_time {
+            params.push(format!("end_time={}", end_time.timestamp()));
+        }
+
         self.get(
-            "/funding_payments",
-            Some(json!({
-                "future": future,
-                "limit": limit,
-                "start_time": start_time.map(|t| t.timestamp()),
-                "end_time": end_time.map(|t| t.timestamp()),
-            })),
+            &format!(
+                "/funding_payments{}{}",
+                if params.is_empty() { "" } else { "?" },
+                params.join("&")
+            ),
+            None,
         )
         .await
     }
