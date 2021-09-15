@@ -366,10 +366,10 @@ impl Rest {
             params.push(format!("limit={}", limit));
         }
         if let Some(start_time) = start_time {
-            params.push(format!("start_time={}", start_time));
+            params.push(format!("start_time={}", start_time.timestamp()));
         }
         if let Some(end_time) = end_time {
-            params.push(format!("end_time={}", end_time));
+            params.push(format!("end_time={}", end_time.timestamp()));
         }
 
         self.get(
@@ -403,10 +403,10 @@ impl Rest {
             params.push(format!("limit={}", limit));
         }
         if let Some(start_time) = start_time {
-            params.push(format!("start_time={}", start_time));
+            params.push(format!("start_time={}", start_time.timestamp()));
         }
         if let Some(end_time) = end_time {
-            params.push(format!("end_time={}", end_time));
+            params.push(format!("end_time={}", end_time.timestamp()));
         }
         if let Some(order_id) = order_id {
             params.push(format!("orderId={}", order_id));
@@ -438,10 +438,10 @@ impl Rest {
             params.push(format!("limit={}", limit));
         }
         if let Some(start_time) = start_time {
-            params.push(format!("start_time={}", start_time));
+            params.push(format!("start_time={}", start_time.timestamp()));
         }
         if let Some(end_time) = end_time {
-            params.push(format!("end_time={}", end_time));
+            params.push(format!("end_time={}", end_time.timestamp()));
         }
 
         self.get(
@@ -470,10 +470,10 @@ impl Rest {
             params.push(format!("limit={}", limit));
         }
         if let Some(start_time) = start_time {
-            params.push(format!("start_time={}", start_time));
+            params.push(format!("start_time={}", start_time.timestamp()));
         }
         if let Some(end_time) = end_time {
-            params.push(format!("end_time={}", end_time));
+            params.push(format!("end_time={}", end_time.timestamp()));
         }
 
         self.get(
