@@ -478,7 +478,7 @@ impl Rest {
 
         self.get(
             &format!(
-                "/orders/history{}{}",
+                "/conditional_orders/history{}{}",
                 if params.is_empty() { "" } else { "?" },
                 params.join("&")
             ),

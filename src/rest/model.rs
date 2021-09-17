@@ -361,7 +361,7 @@ pub enum OrderType {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub enum ConditionalOrderType {
     Stop,
     TrailingStop,
