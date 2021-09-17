@@ -371,8 +371,9 @@ pub enum ConditionalOrderType {
     TakeProfit,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
+#[sqlx(type_name = "fill_type", rename_all = "snake_case")]
 pub enum FillType {
     Otc,
     Order,
