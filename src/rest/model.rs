@@ -114,8 +114,9 @@ pub struct Orderbook {
     pub bids: Vec<(Decimal, Decimal)>,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
+#[sqlx(type_name = "side", rename_all = "snake_case")]
 pub enum Side {
     Buy,
     Sell,
@@ -134,7 +135,7 @@ pub struct Trade {
 
 pub type Trades = Vec<Trade>;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FundingPayment {
     pub id: Id,
@@ -353,15 +354,17 @@ pub struct WalletDeposit {
 // REST API -> Orders
 // TODO
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
+#[sqlx(type_name = "order_type", rename_all = "snake_case")]
 pub enum OrderType {
     Market,
     Limit,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, sqlx::Type)]
 #[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "conditional_order_type", rename_all = "snake_case")]
 pub enum ConditionalOrderType {
     Stop,
     TrailingStop,
@@ -375,8 +378,9 @@ pub enum FillType {
     Order,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
+#[sqlx(type_name = "order_status", rename_all = "snake_case")]
 /// Represents the status of the order.
 /// However, the REST and websockets APIs assign these values differently.
 ///
@@ -414,15 +418,16 @@ pub enum OrderStatus {
     Closed,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
+#[sqlx(type_name = "conditional_order_status", rename_all = "snake_case")]
 pub enum ConditionalOrderStatus {
     Open,
     Cancelled,
     Triggered,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderInfo {
     pub id: Id,
