@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
 
-pub type Id = u64;
+pub type Id = i64;
 pub type Coin = String;
 pub type Symbol = String;
 
@@ -474,7 +474,7 @@ pub struct ConditionalOrderInfo {
     pub retry_until_filled: bool,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct FillInfo {
     pub id: Id,
