@@ -327,7 +327,7 @@ pub struct WalletBalance {
     pub usd_value: Option<Decimal>,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, sqlx::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum DepositStatus {
     Confirmed,
@@ -344,7 +344,7 @@ pub struct WalletDeposit {
     pub size: Decimal,
     pub time: chrono::DateTime<Utc>,
     pub status: DepositStatus,
-    pub confirmations: Option<usize>,
+    pub confirmations: Option<i64>,
     pub confirmed_time: Option<chrono::DateTime<Utc>>,
     pub fee: Option<Decimal>, // fee, not included in size
     pub txid: Option<String>,
