@@ -17,7 +17,10 @@ use reqwest::{
 use rust_decimal::prelude::*;
 use serde::de::DeserializeOwned;
 use serde_json::{from_reader, json, to_string, Map, Value};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    io::Read,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 pub struct Rest {
     secret: String,
@@ -79,19 +82,31 @@ impl Rest {
         Self::new_with_endpoint(Self::ENDPOINT, "FTX", key, secret, subaccount, proxy)
     }
 
-    async fn get<T: DeserializeOwned>(&self, path: &str, params: Option<Value>) -> Result<T> {
+    async fn get<T: DeserializeOwned + std::fmt::Debug>(
+        &self,
+        path: &str,
+        params: Option<Value>,
+    ) -> Result<T> {
         self.request(Method::GET, path, params, None).await
     }
 
-    async fn post<T: DeserializeOwned>(&self, path: &str, body: Option<Value>) -> Result<T> {
+    async fn post<T: DeserializeOwned + std::fmt::Debug>(
+        &self,
+        path: &str,
+        body: Option<Value>,
+    ) -> Result<T> {
         self.request(Method::POST, path, None, body).await
     }
 
-    async fn delete<T: DeserializeOwned>(&self, path: &str, body: Option<Value>) -> Result<T> {
+    async fn delete<T: DeserializeOwned + std::fmt::Debug>(
+        &self,
+        path: &str,
+        body: Option<Value>,
+    ) -> Result<T> {
         self.request(Method::DELETE, path, None, body).await
     }
 
-    async fn request<T: DeserializeOwned>(
+    async fn request<T: DeserializeOwned + std::fmt::Debug>(
         &self,
         method: Method,
         path: &str,
@@ -178,14 +193,17 @@ impl Rest {
             .await?;
 
         match from_reader(&*body) {
-            Ok(SuccessResponse { result, .. }) => Ok(result),
+            Ok(SuccessResponse { result, .. }) => {
+                log::trace!("{:?}", &result);
+                Ok(result)
+            }
 
             Err(e) => {
                 if let Ok(ErrorResponse { error, .. }) = from_reader(&*body) {
                     Err(Error::Api(error))
                 } else {
                     let v: serde_json::Value = from_reader(&*body).unwrap();
-                    log::trace!("{}", v.to_string());
+                    log::warn!("{}", v.to_string());
                     Err(e.into())
                 }
             }
