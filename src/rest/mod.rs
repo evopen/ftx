@@ -22,12 +22,40 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+use serde::{Deserialize, Serialize};
+
 pub struct Rest {
     secret: String,
     client: Client,
     subaccount: Option<String>,
     endpoint: &'static str,
     header_prefix: &'static str,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum PlaceConditionalOrderType {
+    Stop {
+        trigger_price: Decimal,
+        order_price: Option<Decimal>,
+    },
+    TrailingStop {
+        trail_value: Decimal,
+    },
+    TakeProfit {
+        trigger_price: Decimal,
+        order_price: Option<Decimal>,
+    },
+}
+
+#[derive(Debug, Clone)]
+pub struct PlaceConditionalOrder {
+    pub market: String,
+    pub side: Side,
+    pub size: Decimal,
+    pub r#type: PlaceConditionalOrderType,
+    pub reduce_only: bool,
+    pub retry_until_filled: bool,
 }
 
 impl Rest {
@@ -538,6 +566,53 @@ impl Rest {
                 "ioc": ioc.unwrap_or(false),
                 "postOnly": post_only.unwrap_or(false),
                 "clientId": client_id,
+            })),
+        )
+        .await
+    }
+
+    pub async fn place_conditional_order(
+        &self,
+        info: PlaceConditionalOrder,
+    ) -> Result<ConditionalOrderInfo> {
+        let mut g_trigger_price = None;
+        let mut g_order_price = None;
+        let mut g_trail_value = None;
+        let mut g_type = None;
+        match info.r#type {
+            PlaceConditionalOrderType::Stop {
+                trigger_price,
+                order_price,
+            } => {
+                g_type = Some("stop");
+                g_trigger_price = Some(trigger_price);
+                g_order_price = order_price;
+            }
+            PlaceConditionalOrderType::TrailingStop { trail_value } => {
+                g_type = Some("trailingStop");
+                g_trail_value = Some(trail_value);
+            }
+            PlaceConditionalOrderType::TakeProfit {
+                trigger_price,
+                order_price,
+            } => {
+                g_type = Some("takeProfit");
+                g_trigger_price = Some(trigger_price);
+                g_order_price = order_price;
+            }
+        };
+        self.post(
+            "/conditional_orders",
+            Some(json!({
+                "market": info.market,
+                "side": info.side,
+                "size": info.size,
+                "type": g_type,
+                "reduceOnly": info.reduce_only,
+                "retryUntilFilled": info.retry_until_filled,
+                "triggerPrice": g_trigger_price,
+                "orderPrice": g_order_price,
+                "trailValue": g_trail_value
             })),
         )
         .await

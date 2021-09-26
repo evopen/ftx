@@ -466,7 +466,7 @@ pub struct ConditionalOrderInfo {
     pub trail_value: Option<Decimal>,
     pub trigger_price: Decimal,
     pub triggered_at: Option<DateTime<Utc>>,
-    pub filled_size: Decimal,
+    pub filled_size: Option<Decimal>,
     pub avg_fill_price: Option<Decimal>,
     pub created_at: DateTime<Utc>,
     pub client_id: Option<String>,
